@@ -9,9 +9,18 @@ fn seccomp_to_io_error(e: SeccompError) -> io::Error {
 pub struct SeccompFilter;
 
 impl SeccompFilter {
+    /// Applies a basic seccomp filter that blocks dangerous syscalls.
+    ///
+    /// Block specific syscalls
     pub fn apply_basic_filter() -> io::Result<()> {
         let mut filter = ScmpFilterContext::new(ScmpAction::Allow).map_err(seccomp_to_io_error)?;
 
+        // List of dangerous syscalls to block:
+        // - File ops: open/creat/unlink/rmdir/mkdir - file creation/deletion
+        // - Permission: chmod/chown/setuid/setgid - privilege changes
+        // - System: mount/reboot/kexec - system-level operations
+        // - Privilege: capset/ptrace - capability/ptrace debugging
+        // - Network: socket/connect/bind/listen - network access
         let blocked_syscalls = [
             "open",
             "openat",
@@ -58,10 +67,11 @@ impl SeccompFilter {
         ];
 
         for syscall_name in blocked_syscalls {
-            let syscall = ScmpSyscall::from_name(syscall_name).unwrap();
-
             filter
-                .add_rule(ScmpAction::Errno(libc::EPERM), syscall)
+                .add_rule(
+                    ScmpAction::Errno(libc::EPERM),
+                    ScmpSyscall::from_name(syscall_name).unwrap(),
+                )
                 .map_err(seccomp_to_io_error)?;
         }
 
@@ -69,9 +79,19 @@ impl SeccompFilter {
         Ok(())
     }
 
+    /// Applies a stricter whitelist-based filter.
+    ///
+    /// Only allowed specify syscalls
     pub fn apply_strict_filter() -> io::Result<()> {
-        let mut filter = ScmpFilterContext::new(ScmpAction::Allow).map_err(seccomp_to_io_error)?;
+        let mut filter =
+            ScmpFilterContext::new(ScmpAction::Errno(libc::EPERM)).map_err(seccomp_to_io_error)?;
 
+        // Whitelist: only these essential syscalls are allowed
+        // - IO: read/write/close/pread64/pwrite64 - basic file operations
+        // - Memory: brk/mmap/mprotect/munmap - memory management
+        // - Process: exit/exit_group - process termination
+        // - Signals: rt_sigaction/rt_sigprocmask/rt_sigreturn - signal handling
+        // - Info: getpid/getuid/fstat - process info queries
         let allowed_syscalls = [
             "read",
             "write",
@@ -108,31 +128,10 @@ impl SeccompFilter {
             "getrandom",
         ];
 
-        let syscall = ScmpSyscall::from_name("open").unwrap();
-        filter
-            .add_rule(ScmpAction::Errno(libc::EPERM), syscall)
-            .map_err(seccomp_to_io_error)?;
-
         for syscall_name in allowed_syscalls {
             filter
                 .add_rule(
                     ScmpAction::Allow,
-                    ScmpSyscall::from_name(syscall_name).unwrap(),
-                )
-                .map_err(seccomp_to_io_error)?;
-        }
-
-        let blocked_syscalls = [
-            "socket", "connect", "accept", "bind", "listen", "fork", "vfork", "clone", "execve",
-            "execveat", "popen", "system", "setuid", "setgid", "setreuid", "setregid", "chmod",
-            "chown", "open", "openat", "creat", "unlink", "rmdir", "mkdir", "mount", "umount2",
-            "ptrace", "kill", "tkill", "tgkill",
-        ];
-
-        for syscall_name in blocked_syscalls {
-            filter
-                .add_rule(
-                    ScmpAction::Errno(libc::EPERM),
                     ScmpSyscall::from_name(syscall_name).unwrap(),
                 )
                 .map_err(seccomp_to_io_error)?;
