@@ -1,4 +1,5 @@
 use crate::{
+    constants,
     handler::{ExecutionContext, Handler, HandlerError},
     seccomp::SeccompFilter,
     utils::CpuStats,
@@ -69,15 +70,47 @@ impl Handler for CppHandler {
             .stderr(Stdio::piped())
             .spawn()?;
 
+        let pid = cmd
+            .id()
+            .ok_or(HandlerError::InternalError("Cannot get compiler pid"))?;
+
+        // Create cgroup for compilation
+        let hier = hierarchies::auto();
+        let cg = CgroupBuilder::new(&format!("judge-cpp-compile-{}", pid))
+            .cpu()
+            .done()
+            .memory()
+            .memory_hard_limit((constants::DEFAULT_COMPILE_MEMORY_LIMIT_KIB * 1024) as i64)
+            .done()
+            .build(hier)?;
+        cg.add_task(CgroupPid::from(pid as u64))?;
+
+        // Wait output
         let output = match timeout(Duration::from_millis(time_limit_ms), async move {
             Ok::<Output, std::io::Error>(cmd.wait_with_output().await?)
         })
         .await
         {
-            Err(_) => return Err(HandlerError::TimeLimitExceeded),
-            Ok(Err(e)) => return Err(e.into()),
+            Err(_) => {
+                cg.delete()?;
+                return Err(HandlerError::TimeLimitExceeded);
+            }
+            Ok(Err(e)) => {
+                cg.delete()?;
+                return Err(e.into());
+            }
             Ok(Ok(output)) => output,
         };
+
+        // Check if compiler was killed by OOM
+        let memory_controller: &MemController = cg.controller_of().unwrap();
+        let memory_stat = memory_controller.memory_stat();
+        if memory_stat.fail_cnt > 0 {
+            cg.delete()?;
+            return Err(HandlerError::MemoryLimitExceeded);
+        }
+
+        cg.delete()?;
 
         Ok(Some(super::CompileInfo {
             status_code: output.status,
@@ -109,12 +142,13 @@ impl Handler for CppHandler {
             .id()
             .ok_or(HandlerError::InternalError("Cannot get child process pid"))?;
 
-        // Create cgroup to gather resource usage
+        // Create cgroup to limit and gather resource usage
         let hier = hierarchies::auto();
         let cg = CgroupBuilder::new(&format!("judge-cpp-execute-{}", pid))
             .cpu()
             .done()
             .memory()
+            .memory_hard_limit((memory_limit_kib * 1024) as i64)
             .done()
             .build(hier)?;
         cg.add_task(CgroupPid::from(pid as u64))?;
@@ -131,23 +165,39 @@ impl Handler for CppHandler {
         })
         .await
         {
-            Err(_) => return Err(HandlerError::TimeLimitExceeded),
-            Ok(Err(e)) => return Err(e.into()),
+            Err(_) => {
+                cg.delete()?;
+                return Err(HandlerError::TimeLimitExceeded);
+            }
+            Ok(Err(e)) => {
+                cg.delete()?;
+                return Err(e.into());
+            }
             Ok(Ok(output)) => output,
         };
 
-        // Check output length
-        if output.stderr.len() > output_limit_u8 {
-            return Err(HandlerError::OutputLimitExceeded);
-        }
-        if output.stdout.len() > output_limit_u8 {
-            return Err(HandlerError::OutputLimitExceeded);
+        // Check OOM kill status
+        let memory_stat = memory_controller.memory_stat();
+        if memory_stat.fail_cnt > 0 {
+            cg.delete()?;
+            return Err(HandlerError::MemoryLimitExceeded);
         }
 
         // Check memory usage
-        let memory = memory_controller.memory_stat().max_usage_in_bytes;
+        let memory = memory_stat.max_usage_in_bytes;
         if memory > memory_limit_kib * 1024 {
+            cg.delete()?;
             return Err(HandlerError::MemoryLimitExceeded);
+        }
+
+        // Check output length
+        if output.stderr.len() > output_limit_u8 {
+            cg.delete()?;
+            return Err(HandlerError::OutputLimitExceeded);
+        }
+        if output.stdout.len() > output_limit_u8 {
+            cg.delete()?;
+            return Err(HandlerError::OutputLimitExceeded);
         }
 
         let cpu = cpu_controller.cpu().stat;
