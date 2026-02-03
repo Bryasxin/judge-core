@@ -18,6 +18,10 @@ use tokio::{
     process::Command,
     time::{Instant, timeout},
 };
+use tokio_retry::{
+    Retry,
+    strategy::{ExponentialBackoff, jitter},
+};
 
 #[derive(Debug, Clone, Copy)]
 pub struct CppHandler;
@@ -160,10 +164,14 @@ impl Handler for CppHandler {
     }
 
     async fn cleanup(&self, context: &super::ExecutionContext) -> Result<(), super::HandlerError> {
-        remove_file(&context.executable_file).await?;
-        remove_file(&context.source_file).await?;
-        remove_dir(&context.work_dir).await?;
+        let retry_strategy = ExponentialBackoff::from_millis(100).map(jitter).take(3);
 
-        Ok(())
+        Retry::spawn(retry_strategy, || async {
+            remove_file(&context.executable_file).await?;
+            remove_file(&context.source_file).await?;
+            remove_dir(&context.work_dir).await?;
+            Ok(())
+        })
+        .await
     }
 }
