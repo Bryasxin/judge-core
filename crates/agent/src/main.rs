@@ -20,7 +20,14 @@ async fn main() -> Result<(), AgentError> {
     let submission = postcard::from_bytes::<Submission>(&data)?;
 
     let result = match submission.language {
-        Language::Cpp => Engine::judge(CppHandler, submission, constants::DEFAULT_COMPILE_TIME_LIMIT_MS).await,
+        Language::Cpp => {
+            Engine::judge(
+                CppHandler,
+                submission,
+                constants::DEFAULT_COMPILE_TIME_LIMIT_MS,
+            )
+            .await
+        }
     };
     let result = postcard::to_allocvec(&result)?;
 

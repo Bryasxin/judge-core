@@ -8,11 +8,7 @@ use cgroups_rs::{
     CgroupPid,
     fs::{cgroup_builder::CgroupBuilder, cpu::CpuController, hierarchies, memory::MemController},
 };
-use std::{
-    process::{Output, Stdio},
-    str::FromStr,
-    time::Duration,
-};
+use std::{process::Stdio, str::FromStr, time::Duration};
 use tempfile::tempdir;
 use tokio::{
     fs::{remove_dir, remove_file},
@@ -86,21 +82,18 @@ impl Handler for CppHandler {
         cg.add_task(CgroupPid::from(pid as u64))?;
 
         // Wait output
-        let output = match timeout(Duration::from_millis(time_limit_ms), async move {
-            Ok::<Output, std::io::Error>(cmd.wait_with_output().await?)
-        })
-        .await
-        {
-            Err(_) => {
-                cg.delete()?;
-                return Err(HandlerError::TimeLimitExceeded);
-            }
-            Ok(Err(e)) => {
-                cg.delete()?;
-                return Err(e.into());
-            }
-            Ok(Ok(output)) => output,
-        };
+        let output =
+            match timeout(Duration::from_millis(time_limit_ms), cmd.wait_with_output()).await {
+                Err(_) => {
+                    cg.delete()?;
+                    return Err(HandlerError::TimeLimitExceeded);
+                }
+                Ok(Err(e)) => {
+                    cg.delete()?;
+                    return Err(e.into());
+                }
+                Ok(Ok(output)) => output,
+            };
 
         // Check if compiler was killed by OOM
         let memory_controller: &MemController = cg.controller_of().unwrap();
@@ -135,7 +128,7 @@ impl Handler for CppHandler {
                 .stdin(Stdio::piped())
                 .stdout(Stdio::piped())
                 .stderr(Stdio::piped())
-                .pre_exec(|| SeccompFilter::apply_basic_filter())
+                .pre_exec(SeccompFilter::apply_basic_filter)
                 .spawn()?
         };
 
@@ -156,26 +149,22 @@ impl Handler for CppHandler {
         let memory_controller: &MemController = cg.controller_of().unwrap();
         let cpu_controller: &CpuController = cg.controller_of().unwrap();
 
-        // It is impossible to fail
         let mut stdin = cmd.stdin.take().unwrap();
         stdin.write_all(input_data.as_bytes()).await?;
         drop(stdin);
 
-        let output = match timeout(Duration::from_millis(time_limit_ms), async move {
-            Ok::<Output, std::io::Error>(cmd.wait_with_output().await?)
-        })
-        .await
-        {
-            Err(_) => {
-                cg.delete()?;
-                return Err(HandlerError::TimeLimitExceeded);
-            }
-            Ok(Err(e)) => {
-                cg.delete()?;
-                return Err(e.into());
-            }
-            Ok(Ok(output)) => output,
-        };
+        let output =
+            match timeout(Duration::from_millis(time_limit_ms), cmd.wait_with_output()).await {
+                Err(_) => {
+                    cg.delete()?;
+                    return Err(HandlerError::TimeLimitExceeded);
+                }
+                Ok(Err(e)) => {
+                    cg.delete()?;
+                    return Err(e.into());
+                }
+                Ok(Ok(output)) => output,
+            };
 
         // Check OOM kill status
         let memory_stat = memory_controller.memory_stat();
@@ -212,9 +201,9 @@ impl Handler for CppHandler {
             stdout: String::from_utf8_lossy(&output.stdout).into(),
             stderr: String::from_utf8_lossy(&output.stderr).into(),
             resource_usage: super::ResourceUsage {
-                memory_kib: (memory + 1023) / 1024, // Ceil
+                memory_kib: memory.div_ceil(1024),
                 real_time_ms: now.elapsed().as_millis() as u64,
-                cpu_time_ms: cpu.usage_usec / 1000, // Converting microseconds to milliseconds (cgroups returns usec)
+                cpu_time_ms: cpu.usage_usec / 1000,
             },
         })
     }

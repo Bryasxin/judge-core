@@ -2,7 +2,7 @@ use libseccomp::{ScmpAction, ScmpFilterContext, ScmpSyscall, error::SeccompError
 use std::io;
 
 fn seccomp_to_io_error(e: SeccompError) -> io::Error {
-    io::Error::new(io::ErrorKind::Other, e)
+    io::Error::other(e)
 }
 
 #[derive(Debug)]

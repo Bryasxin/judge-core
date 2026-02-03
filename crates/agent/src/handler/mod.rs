@@ -22,9 +22,9 @@ pub enum HandlerError {
     ParseCpuStatsError(#[from] crate::utils::ParseCpuStatsError),
 }
 
-impl Into<JudgeResult> for HandlerError {
-    fn into(self) -> JudgeResult {
-        match self {
+impl From<HandlerError> for JudgeResult {
+    fn from(val: HandlerError) -> Self {
+        match val {
             HandlerError::IoError(err) => JudgeResult::InternalError {
                 error_message: err.to_string(),
             },
