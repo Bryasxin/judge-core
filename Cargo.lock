@@ -8,6 +8,8 @@ version = "0.0.0"
 dependencies = [
  "cgroups-rs",
  "futures",
+ "libc",
+ "libseccomp",
  "postcard",
  "shared",
  "tempfile",
@@ -505,6 +507,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bcc35a38544a891a5f7c865aca548a982ccb3b8650a5b06d0fd33a10283c56fc"
 
 [[package]]
+name = "libseccomp"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0e5310a2c5b6ffbc094b5f70a2ca7b79ed36ad90e6f90994b166489a1bce3fcc"
+dependencies = [
+ "bitflags 2.10.0",
+ "libc",
+ "libseccomp-sys",
+ "pkg-config",
+]
+
+[[package]]
+name = "libseccomp-sys"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "60276e2d41bbb68b323e566047a1bfbf952050b157d8b5cdc74c07c1bf4ca3b6"
+
+[[package]]
 name = "linux-raw-sys"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -631,6 +651,12 @@ dependencies = [
  "fastrand",
  "futures-io",
 ]
+
+[[package]]
+name = "pkg-config"
+version = "0.3.32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7edddbd0b52d732b21ad9a5fab5c704c14cd949e5e9a1ec5929a24fded1b904c"
 
 [[package]]
 name = "polling"
@@ -812,9 +838,9 @@ dependencies = [
 
 [[package]]
 name = "slab"
-version = "0.4.11"
+version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a2ae44ef20feb57a68b23d846850f861394c2e02dc425a50098ae8c90267589"
+checksum = "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5"
 
 [[package]]
 name = "socket2"

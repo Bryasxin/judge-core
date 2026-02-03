@@ -1,7 +1,7 @@
 mod cpp;
 pub use cpp::CppHandler;
-use shared::rpc::JudgeResult;
 
+use shared::rpc::JudgeResult;
 use std::{path::PathBuf, process::ExitStatus};
 
 #[derive(Debug, thiserror::Error)]

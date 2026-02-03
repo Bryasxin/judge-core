@@ -1,5 +1,6 @@
 mod engine;
 mod handler;
+mod seccomp;
 mod utils;
 
 use crate::{engine::Engine, handler::CppHandler};

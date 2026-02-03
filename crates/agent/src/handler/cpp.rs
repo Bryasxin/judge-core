@@ -1,5 +1,6 @@
 use crate::{
     handler::{ExecutionContext, Handler, HandlerError},
+    seccomp::SeccompFilter,
     utils::CpuStats,
 };
 use cgroups_rs::{
@@ -95,11 +96,15 @@ impl Handler for CppHandler {
     ) -> Result<super::ExecuteInfo, super::HandlerError> {
         let now = Instant::now();
 
-        let mut cmd = Command::new(&context.executable_file)
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()?;
+        let mut cmd = unsafe {
+            Command::new(&context.executable_file)
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped())
+                .pre_exec(|| SeccompFilter::apply_basic_filter())
+                .spawn()?
+        };
+
         let pid = cmd
             .id()
             .ok_or(HandlerError::InternalError("Cannot get child process pid"))?;
