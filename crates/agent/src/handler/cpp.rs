@@ -125,7 +125,8 @@ impl Handler for CppHandler {
         input_data: &str,
         time_limit_ms: u64,
         memory_limit_kib: u64,
-        output_limit_u8: usize,
+        stdout_limit_bytes: usize,
+        stderr_limit_bytes: usize,
     ) -> Result<super::ExecuteInfo, super::HandlerError> {
         let now = Instant::now();
 
@@ -191,11 +192,11 @@ impl Handler for CppHandler {
         }
 
         // Check output length
-        if output.stderr.len() > output_limit_u8 {
+        if output.stderr.len() > stderr_limit_bytes {
             cg.delete()?;
             return Err(HandlerError::OutputLimitExceeded);
         }
-        if output.stdout.len() > output_limit_u8 {
+        if output.stdout.len() > stdout_limit_bytes {
             cg.delete()?;
             return Err(HandlerError::OutputLimitExceeded);
         }
@@ -213,7 +214,7 @@ impl Handler for CppHandler {
             resource_usage: super::ResourceUsage {
                 memory_kib: (memory + 1023) / 1024, // Ceil
                 real_time_ms: now.elapsed().as_millis() as u64,
-                cpu_time_ms: cpu.usage_usec,
+                cpu_time_ms: cpu.usage_usec / 1000, // Converting microseconds to milliseconds (cgroups returns usec)
             },
         })
     }

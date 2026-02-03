@@ -95,13 +95,16 @@ pub trait Handler {
     /// Execute the compiled program once
     ///
     /// Handler should handle time limit and memory limit
+    ///
+    /// Note: stderr is for debugging (user), stdout is for judging (expected output comparison)
     async fn execute(
         &self,
         context: &ExecutionContext,
         input_data: &str,
         time_limit_ms: u64,
         memory_limit_kib: u64,
-        output_limit_u8: usize,
+        stdout_limit_bytes: usize,
+        stderr_limit_bytes: usize,
     ) -> Result<ExecuteInfo, HandlerError>;
 
     /// Cleanup the environment

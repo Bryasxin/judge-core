@@ -41,12 +41,17 @@ impl Engine {
         }
 
         let results = join_all(submission.test_cases.iter().map(|case| {
+            // stdout for judging: max 2x expected output size
+            let stdout_limit_bytes = case.expected_output.len() * 2;
+            // stderr for debugging: allow up to 128 KiB
+            let stderr_limit_bytes = 128 * 1024;
             handler.execute(
                 &ctx,
                 &case.input_data,
                 submission.limits.time_ms,
                 submission.limits.memory_kib,
-                &case.expected_output.len() * 2,
+                stdout_limit_bytes,
+                stderr_limit_bytes,
             )
         }))
         .await;
@@ -59,18 +64,17 @@ impl Engine {
         for (idx, result) in results.into_iter().enumerate() {
             match result {
                 Ok(result) => {
-                    let expected = submission.test_cases[idx].expected_output.trim();
-                    let actual = result.stdout.trim();
-
-                    // If invalid output
-                    if expected != actual {
-                        return JudgeResult::WrongAnswer {
-                            expected_output: expected.to_string(),
-                            actual_output: actual.to_string(),
-                        };
+                    // Check time
+                    if result.resource_usage.cpu_time_ms > submission.limits.time_ms {
+                        return JudgeResult::TimeLimitExceeded;
                     }
 
-                    // If non-zero exit code
+                    // Check memory
+                    if result.resource_usage.memory_kib > submission.limits.memory_kib {
+                        return JudgeResult::MemoryLimitExceeded;
+                    }
+
+                    // Check exit code
                     if !result.status_code.success() {
                         let output_formated =
                             format!("Stdout:\n{}\nStderr:\n{}", result.stdout, result.stderr);
@@ -81,14 +85,15 @@ impl Engine {
                         };
                     }
 
-                    // If time limit exceeded
-                    if result.resource_usage.cpu_time_ms > submission.limits.time_ms {
-                        return JudgeResult::TimeLimitExceeded;
-                    }
+                    // Check output
+                    let expected = submission.test_cases[idx].expected_output.trim();
+                    let actual = result.stdout.trim();
 
-                    // If memory limit exceeded
-                    if result.resource_usage.memory_kib > submission.limits.memory_kib {
-                        return JudgeResult::MemoryLimitExceeded;
+                    if expected != actual {
+                        return JudgeResult::WrongAnswer {
+                            expected_output: expected.to_string(),
+                            actual_output: actual.to_string(),
+                        };
                     }
 
                     // Update maximum resource usage
