@@ -10,21 +10,20 @@ impl Engine {
         submission: Submission,
         compile_time_limit_ms: u64,
     ) -> JudgeResult {
+        let submission_id = submission.id;
         let need_compile = handler.needs_compile();
 
         let ctx = match handler.prepare(&submission.source_code).await {
             Ok(info) => info,
             Err(err) => {
-                return JudgeResult::InternalError {
-                    error_message: err.to_string(),
-                };
+                return err.into_judge_result(&submission_id);
             }
         };
 
         if need_compile {
             let compile_info = match handler.compile(&ctx, compile_time_limit_ms).await {
                 Ok(info) => info.unwrap(),
-                Err(err) => return err.into(),
+                Err(err) => return err.into_judge_result(&submission_id),
             };
 
             if !compile_info.status_code.success() {
@@ -34,6 +33,7 @@ impl Engine {
                 );
 
                 return JudgeResult::CompilationError {
+                    id: submission_id,
                     compiler_message: message,
                 };
             }
@@ -58,17 +58,17 @@ impl Engine {
                 .await
             {
                 Ok(result) => result,
-                Err(err) => return err.into(),
+                Err(err) => return err.into_judge_result(&submission_id),
             };
 
             // Check time
             if result.resource_usage.cpu_time_ms > submission.limits.time_ms {
-                return JudgeResult::TimeLimitExceeded;
+                return JudgeResult::TimeLimitExceeded { id: submission_id };
             }
 
             // Check memory
             if result.resource_usage.memory_kib > submission.limits.memory_kib {
-                return JudgeResult::MemoryLimitExceeded;
+                return JudgeResult::MemoryLimitExceeded { id: submission_id };
             }
 
             // Check exit code
@@ -77,6 +77,7 @@ impl Engine {
                     format!("Stdout:\n{}\nStderr:\n{}", result.stdout, result.stderr);
 
                 return JudgeResult::RuntimeError {
+                    id: submission_id,
                     actual_output: output_formated,
                     error_message: "Non-zero exit code".into(),
                 };
@@ -88,6 +89,7 @@ impl Engine {
 
             if expected != actual {
                 return JudgeResult::WrongAnswer {
+                    id: submission_id,
                     expected_output: expected.to_string(),
                     actual_output: actual.to_string(),
                 };
@@ -100,10 +102,11 @@ impl Engine {
         }
 
         if let Err(e) = handler.cleanup(&ctx).await {
-            return e.into();
+            return e.into_judge_result(&submission_id);
         }
 
         JudgeResult::Accepted {
+            id: submission_id,
             cpu_time_ms: max_cpu_time_ms,
             real_time_ms: max_real_time_ms,
             memory_kib: max_memory_kib,

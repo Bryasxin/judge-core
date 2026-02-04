@@ -1,29 +1,39 @@
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub enum JudgeResult {
-    // TODO: Add more monitor fields like `cpu_time_ms`, `memory_kib`
     Accepted {
+        id: String,
         cpu_time_ms: u64,
         real_time_ms: u64,
         memory_kib: u64,
     },
     WrongAnswer {
+        id: String,
         expected_output: String,
         actual_output: String,
     },
-    TimeLimitExceeded,
-    MemoryLimitExceeded,
+    TimeLimitExceeded {
+        id: String,
+    },
+    MemoryLimitExceeded {
+        id: String,
+    },
     RuntimeError {
+        id: String,
         actual_output: String,
         error_message: String,
     },
     CompilationError {
+        id: String,
         compiler_message: String,
     },
-    // HACK: It's hard to detect presentation error, so we just ignore it
-    PresentationError,
-    // HACK: This implementation is not detectable
-    OutputLimitExceeded,
+    PresentationError {
+        id: String,
+    },
+    OutputLimitExceeded {
+        id: String,
+    },
     InternalError {
+        id: String,
         error_message: String,
     },
 }
@@ -35,6 +45,7 @@ pub enum Language {
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Submission {
+    pub id: String,
     pub language: Language,
     pub source_code: String,
     pub test_cases: Vec<TestCase>,
