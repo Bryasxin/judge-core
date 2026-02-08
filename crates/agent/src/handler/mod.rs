@@ -22,32 +22,22 @@ pub enum HandlerError {
     ParseCpuStatsError(#[from] crate::utils::ParseCpuStatsError),
 }
 
-impl HandlerError {
-    pub fn into_judge_result(self, id: &str) -> JudgeResult {
+impl Into<JudgeResult> for HandlerError {
+    fn into(self) -> JudgeResult {
         match self {
             HandlerError::IoError(err) => JudgeResult::InternalError {
-                id: id.to_string(),
                 error_message: err.to_string(),
             },
-            HandlerError::TimeLimitExceeded => {
-                JudgeResult::TimeLimitExceeded { id: id.to_string() }
-            }
-            HandlerError::MemoryLimitExceeded => {
-                JudgeResult::MemoryLimitExceeded { id: id.to_string() }
-            }
-            HandlerError::OutputLimitExceeded => {
-                JudgeResult::OutputLimitExceeded { id: id.to_string() }
-            }
+            HandlerError::TimeLimitExceeded => JudgeResult::TimeLimitExceeded,
+            HandlerError::MemoryLimitExceeded => JudgeResult::MemoryLimitExceeded,
+            HandlerError::OutputLimitExceeded => JudgeResult::OutputLimitExceeded,
             HandlerError::InternalError(err) => JudgeResult::InternalError {
-                id: id.to_string(),
                 error_message: err.into(),
             },
             HandlerError::CgroupError(e) => JudgeResult::InternalError {
-                id: id.to_string(),
                 error_message: e.to_string(),
             },
             HandlerError::ParseCpuStatsError(e) => JudgeResult::InternalError {
-                id: id.to_string(),
                 error_message: e.to_string(),
             },
         }

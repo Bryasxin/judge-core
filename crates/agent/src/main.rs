@@ -7,7 +7,7 @@ mod utils;
 use crate::{engine::Engine, handler::CppHandler};
 use shared::{
     protocol::{receive_data, send_data},
-    rpc::{Language, Submission},
+    rpc::{JudgeRequest, Language},
 };
 use tokio_vsock::{VMADDR_CID_HOST, VsockAddr, VsockStream};
 
@@ -17,7 +17,7 @@ async fn main() -> Result<(), AgentError> {
     let mut stream = VsockStream::connect(addr).await?;
 
     let data = receive_data(&mut stream).await?;
-    let submission = postcard::from_bytes::<Submission>(&data)?;
+    let submission = postcard::from_bytes::<JudgeRequest>(&data)?;
 
     let result = match submission.language {
         Language::Cpp => {
