@@ -70,7 +70,6 @@ pub struct JudgeResponse {
     pub id: usize,
 
     /// If true, this error is fatal
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_fatal_error: Option<bool>,
 
     /// Judge result type
