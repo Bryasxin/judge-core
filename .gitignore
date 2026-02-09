@@ -1,4 +1,9 @@
+# IDE files
 .idea/
 .vscode/
 
+# Build output
 target/
+
+# Runtime requirements
+vm/
