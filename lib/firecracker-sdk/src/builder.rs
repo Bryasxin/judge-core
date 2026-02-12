@@ -1,5 +1,5 @@
 //! Firecracker instance builder, which returns an unstarted firecracker wrapper
-use crate::with;
+use crate::{dto::LoggerLevel, with};
 use std::path::PathBuf;
 
 #[derive(Debug, Default, Clone)]
@@ -19,7 +19,7 @@ pub struct FirecrackerBuilder {
     /// Instance id
     id: Option<String>,
     /// Logger level
-    logger_level: Option<String>,
+    logger_level: Option<LoggerLevel>,
     /// Path to a fifo or a file used for configuring the logger on startup
     log_file: Option<PathBuf>,
     /// Path to a file that contains metadata in JSON format to add to the mmds
@@ -69,7 +69,7 @@ impl FirecrackerBuilder {
     with!(boot_timer, enable_boot_timer, bool);
     with!(describe_snapshot_file, Option<PathBuf>);
     with!(id, Option<String>);
-    with!(logger_level, Option<String>);
+    with!(logger_level, Option<LoggerLevel>);
     with!(log_file, Option<PathBuf>);
     with!(metadata_file, Option<PathBuf>);
     with!(metrics_file, Option<PathBuf>);
