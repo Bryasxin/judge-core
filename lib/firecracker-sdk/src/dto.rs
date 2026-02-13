@@ -8,22 +8,22 @@ use serde_with::skip_serializing_none;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Balloon {
     /// Target balloon size in MiB
-    amount_mib: isize,
+    pub amount_mib: isize,
     /// Whether the balloon should deflate when the guest has memory pressure
-    deflate_on_oom: bool,
+    pub deflate_on_oom: bool,
     /// Interval in seconds between refreshing statistics. A non-zero value will enable the statistics. Defaults to 0
-    stats_polling_interval_s: Option<isize>,
+    pub stats_polling_interval_s: Option<isize>,
     /// Whether the free page hinting feature is enabled
-    free_page_hinting: Option<bool>,
+    pub free_page_hinting: Option<bool>,
     /// Whether the free page reporting feature is enabled
-    free_page_reporting: Option<bool>,
+    pub free_page_reporting: Option<bool>,
 }
 
 /// Balloon device descriptor
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BalloonUpdate {
     /// Target balloon size in MiB
-    amount_mib: isize,
+    pub amount_mib: isize,
 }
 
 /// Describes the balloon device statistics
@@ -31,52 +31,52 @@ pub struct BalloonUpdate {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BalloonStats {
     /// Target number of pages the device aims to hold
-    target_pages: i64,
+    pub target_pages: i64,
     /// Actual number of pages the device is holding
-    actual_pages: i64,
+    pub actual_pages: i64,
     /// Target amount of memory (in MiB) the device aims to hold
-    target_mib: i64,
+    pub target_mib: i64,
     /// Actual amount of memory (in MiB) the device is holding
-    actual_mib: i64,
+    pub actual_mib: i64,
     /// The amount of memory that has been swapped in (in bytes)
-    swap_in: Option<i64>,
+    pub swap_in: Option<i64>,
     /// The amount of memory that has been swapped out to disk (in bytes)
-    swap_out: Option<i64>,
+    pub swap_out: Option<i64>,
     /// The number of major page faults that have occurred
-    major_faults: Option<i64>,
+    pub major_faults: Option<i64>,
     /// The number of minor page faults that have occurred
-    minor_faults: Option<i64>,
+    pub minor_faults: Option<i64>,
     /// The amount of memory not being used for any purpose (in bytes)
-    free_memory: Option<i64>,
+    pub free_memory: Option<i64>,
     /// The total amount of memory available (in bytes)
-    total_memory: Option<i64>,
+    pub total_memory: Option<i64>,
     /// An estimate of how much memory is available (in bytes) for starting new applications, without pushing the system to swap
-    available_memory: Option<i64>,
+    pub available_memory: Option<i64>,
     /// The amount of memory, in bytes, that can be quickly reclaimed without additional I/O. Typically these pages are used for caching files from disk
-    disk_caches: Option<i64>,
+    pub disk_caches: Option<i64>,
     /// The number of successful hugetlb page allocations in the guest
-    hugetlb_allocations: Option<i64>,
+    pub hugetlb_allocations: Option<i64>,
     /// The number of failed hugetlb page allocations in the guest
-    hugetlb_failures: Option<i64>,
+    pub hugetlb_failures: Option<i64>,
     /// OOM killer invocations, indicating critical memory pressure
-    oom_kill: Option<i64>,
+    pub oom_kill: Option<i64>,
     /// Counter of Allocation enter a slow path to gain more memory page. The reclaim/scan metrics can reveal what is actually happening
-    alloc_stall: Option<i64>,
+    pub alloc_stall: Option<i64>,
     /// Amount of memory scanned asynchronously
-    async_scan: Option<i64>,
+    pub async_scan: Option<i64>,
     /// Amount of memory scanned directly
-    direct_scan: Option<i64>,
+    pub direct_scan: Option<i64>,
     /// Amount of memory reclaimed asynchronously
-    async_reclaim: Option<i64>,
+    pub async_reclaim: Option<i64>,
     /// Amount of memory reclaimed directly
-    direct_reclaim: Option<i64>,
+    pub direct_reclaim: Option<i64>,
 }
 
 /// Command used to start a free page hinting run
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BalloonStartCmd {
     /// If Firecracker should automatically acknowledge when the guest submits a done cmd
-    acknowledge_on_stop: bool,
+    pub acknowledge_on_stop: bool,
 }
 
 /// Describes the free page hinting status
@@ -84,16 +84,16 @@ pub struct BalloonStartCmd {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BalloonHintingStatus {
     /// The last command issued by the host
-    host_cmd: isize,
+    pub host_cmd: isize,
     /// The last command provided by the guest
-    guest_cmd: Option<isize>,
+    pub guest_cmd: Option<isize>,
 }
 
 /// Update the statistics polling interval, with the first statistics update scheduled immediately. Statistics cannot be turned on/off after boot
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BalloonStatsUpdate {
     /// Interval in seconds between refreshing statistics
-    stats_polling_interval_s: isize,
+    pub stats_polling_interval_s: isize,
 }
 
 /// The CPU Template defines a set of flags to be disabled from the microvm so that
@@ -120,28 +120,28 @@ pub struct CpuConfig {
     /// A collection of KVM capabilities to be added or removed (both x86_64 and aarch64)
     ///
     /// KVM capability as a numeric string. Prefix with '!' to remove capability. Example "121" (add) or "!121" (remove)
-    kvm_capabilities: Option<Vec<String>>,
+    pub kvm_capabilities: Option<Vec<String>>,
     /// A collection of CPUID leaf modifiers (x86_64 only)
-    cpuid_modifiers: Option<Vec<CpuidLeafModifier>>,
+    pub cpuid_modifiers: Option<Vec<CpuidLeafModifier>>,
     /// A collection of model specific register modifiers (x86_64 only)
-    msr_modifiers: Option<Vec<MsrModifier>>,
+    pub msr_modifiers: Option<Vec<MsrModifier>>,
     /// A collection of register modifiers (aarch64 only)
-    reg_modifiers: Option<Vec<ArmRegisterModifier>>,
+    pub reg_modifiers: Option<Vec<ArmRegisterModifier>>,
     /// A collection of vCPU features to be modified (aarch64 only)
-    vcpu_features: Option<Vec<VcpuFeatures>>,
+    pub vcpu_features: Option<Vec<VcpuFeatures>>,
 }
 
 /// Modifier for a CPUID leaf and subleaf (x86_64)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CpuidLeafModifier {
     /// CPUID leaf index as hex, binary, or decimal string (e.g., "0x0", "0b0", "0"))
-    leaf: String,
+    pub leaf: String,
     /// CPUID subleaf index as hex, binary, or decimal string (e.g., "0x0", "0b0", "0")
-    subleaf: String,
+    pub subleaf: String,
     /// KVM feature flags for this leaf-subleaf
-    flags: i32,
+    pub flags: i32,
     /// Register modifiers for this CPUID leaf
-    modifiers: Vec<CpuidRegisterModifier>,
+    pub modifiers: Vec<CpuidRegisterModifier>,
 }
 
 /// Modifier for a specific CPUID register within a leaf (x86_64)
@@ -149,9 +149,9 @@ pub struct CpuidLeafModifier {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CpuidRegisterModifier {
     /// Target CPUID register name
-    register: CpuidRegisterName,
+    pub register: CpuidRegisterName,
     /// 32-bit bitmap string defining which bits to modify. Format is "0b" followed by 32 characters where '0' = clear bit, '1' = set bit, 'x' = don't modify. Example "0b00000000000000000000000000000001" or "0bxxxxxxxxxxxxxxxxxxxxxxxxxxxx0001"
-    bitmap: String,
+    pub bitmap: String,
 }
 
 /// CPUID register name
@@ -171,27 +171,27 @@ pub enum CpuidRegisterName {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MsrModifier {
     /// 32-bit MSR address as hex, binary, or decimal string (e.g., "0x10a", "0b100001010", "266")
-    addr: String,
+    pub addr: String,
     /// 64-bit bitmap string defining which bits to modify. Format is "0b" followed by 64 characters where '0' = clear bit, '1' = set bit, 'x' = don't modify. Underscores can be used for readability. Example "0b0000000000000000000000000000000000000000000000000000000000000001"
-    bitmap: String,
+    pub bitmap: String,
 }
 
 /// Modifier for an ARM register (aarch64)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ArmRegisterModifier {
     /// 64-bit register address as hex, binary, or decimal string (e.g., "0x0", "0b0", "0")
-    addr: String,
+    pub addr: String,
     /// 128-bit bitmap string defining which bits to modify. Format is "0b" followed by up to 128 characters where '0' = clear bit, '1' = set bit, 'x' = don't modify. Underscores can be used for readability. Example "0b0000000000000000000000000000000000000000000000000000000000000001"
-    bitmap: String,
+    pub bitmap: String,
 }
 
 /// vCPU feature modifier (aarch64)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VcpuFeatures {
     /// Index in the kvm_vcpu_init.features array
-    index: i32,
+    pub index: i32,
     /// 32-bit bitmap string defining which bits to modify. Format is "0b" followed by 32 characters where '0' = clear bit, '1' = set bit, 'x' = don't modify. Example "0b00000000000000000000000001100000"
-    bitmap: String,
+    pub bitmap: String,
 }
 
 /// Boot source descriptor
@@ -199,41 +199,41 @@ pub struct VcpuFeatures {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BootSource {
     /// Kernel boot arguments
-    boot_args: Option<String>,
+    pub boot_args: Option<String>,
     /// Host level path to the initrd image used to boot the guest
-    initrd_path: Option<String>,
+    pub initrd_path: Option<String>,
     /// Host level path to the kernel image used to boot the guest
-    kernel_image_path: String,
+    pub kernel_image_path: String,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Drive {
     /// Drive id
-    drive_id: String,
+    pub drive_id: String,
     /// Represents the unique id of the boot partition of this device. It is
     /// optional and it will be taken into account only if the is_root_device
     /// field is true.
-    partuuid: Option<String>,
+    pub partuuid: Option<String>,
     /// Is root device
-    is_root_device: Option<bool>,
+    pub is_root_device: Option<bool>,
     /// Represents the caching strategy for the block device
-    cache_type: Option<CacheType>,
+    pub cache_type: Option<CacheType>,
     /// Is block read only.
     /// This field is required for virtio-block config and should be omitted for vhost-user-block configuration
-    is_read_only: bool,
+    pub is_read_only: bool,
     /// Host level path for the guest drive
     /// This field is required for virtio-block config and should be omitted for vhost-user-block configuration
-    path_on_host: Option<String>,
+    pub path_on_host: Option<String>,
     /// Rate limiter configuration
-    rate_limiter: Option<RateLimiter>,
+    pub rate_limiter: Option<RateLimiter>,
     /// Type of the IO engine used by the device. "Async" is supported on
     /// host kernels newer than 5.10.51
     /// This field is optional for virtio-block config and should be omitted for vhost-user-block configuration
-    io_engine: Option<IoEngine>,
+    pub io_engine: Option<IoEngine>,
     /// Path to the socket of vhost-user-block backend
     /// This field is required for vhost-user-block config should be omitted for virtio-block configuration
-    socket: Option<String>,
+    pub socket: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -256,15 +256,15 @@ pub enum IoEngine {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Pmem {
     /// Identificator for this device
-    id: String,
+    pub id: String,
     /// Host level path for the virtio-pmem device to use as a backing file
-    path_on_host: String,
+    pub path_on_host: String,
     /// Flag to make this device be the root device for VM boot
     ///
     /// Setting this flag will fail if there is another device configured to be a root device already
-    root_device: Option<bool>,
+    pub root_device: Option<bool>,
     /// Flag to map backing file in read-only mode
-    read_only: Option<bool>,
+    pub read_only: Option<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -276,31 +276,31 @@ pub struct Error {
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct FullVmConfiguration {
-    balloon: Option<Balloon>,
-    drives: Option<Vec<Drive>>,
+    pub balloon: Option<Balloon>,
+    pub drives: Option<Vec<Drive>>,
     #[serde(rename = "boot-source")]
-    boot_source: Option<BootSource>,
+    pub boot_source: Option<BootSource>,
     #[serde(rename = "cpu-config")]
-    cpu_config: Option<CpuConfig>,
-    logger: Option<Logger>,
+    pub cpu_config: Option<CpuConfig>,
+    pub logger: Option<Logger>,
     #[serde(rename = "machine-config")]
-    machine_config: Option<MachineConfiguration>,
-    metrics: Option<Metrics>,
+    pub machine_config: Option<MachineConfiguration>,
+    pub metrics: Option<Metrics>,
     #[serde(rename = "memory-hotplug")]
-    memory_hotplug: Option<MemoryHotplugConfig>,
+    pub memory_hotplug: Option<MemoryHotplugConfig>,
     #[serde(rename = "mmds-config")]
-    mmds_config: Option<MmdsConfig>,
+    pub mmds_config: Option<MmdsConfig>,
     #[serde(rename = "network-interfaces")]
-    network_interfaces: Option<Vec<NetworkInterface>>,
-    pmem: Option<Vec<Pmem>>,
-    vsock: Option<Vsock>,
-    entropy: Option<EntropyDevice>,
+    pub network_interfaces: Option<Vec<NetworkInterface>>,
+    pub pmem: Option<Vec<Pmem>>,
+    pub vsock: Option<Vsock>,
+    pub entropy: Option<EntropyDevice>,
 }
 
 /// Variant wrapper containing the real action
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InstanceActionInfo {
-    action_type: ActionType,
+    pub action_type: ActionType,
 }
 
 /// Enumeration indicating what type of action is contained in the payload
@@ -318,13 +318,13 @@ pub enum ActionType {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InstanceInfo {
     /// Application name
-    app_name: String,
+    pub app_name: String,
     /// Instance id
-    id: String,
+    pub id: String,
     /// The current detailed state (Not started, Running, Paused) of the Firecracker instance
-    state: InstanceState,
+    pub state: InstanceState,
     /// MicroVM hypervisor build version
-    vmm_version: String,
+    pub vmm_version: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -340,15 +340,15 @@ pub enum InstanceState {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Logger {
     /// Set the level. The possible values are case-insensitive
-    level: Option<LoggerLevel>,
+    pub level: Option<LoggerLevel>,
     /// Path to the named pipe or file for the human readable log output
-    log_path: Option<String>,
+    pub log_path: Option<String>,
     /// Whether or not to output the level in the logs
-    show_level: Option<String>,
+    pub show_level: Option<String>,
     /// Whether or not to include the file path and line number of the log's origin
-    show_log_origin: Option<String>,
+    pub show_log_origin: Option<String>,
     /// The module path to filter log messages by, example: `api_server::request`
-    module: Option<String>,
+    pub module: Option<String>,
 }
 
 /// INFO: Logger level is case-insensitive
@@ -382,11 +382,11 @@ pub enum LoggerLevel {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Vsock {
     /// Guest Vsock CID
-    guest_cid: isize,
+    pub guest_cid: isize,
     /// Path to UNIX domain socket, used to proxy vsock connections
-    uds_path: String,
+    pub uds_path: String,
     /// This parameter has been deprecated and it will be removed in future Firecracker release
-    vsock_id: Option<String>,
+    pub vsock_id: Option<String>,
 }
 
 /// The status of the hotpluggable memory device (virtio-mem)
@@ -394,22 +394,22 @@ pub struct Vsock {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct MemoryHotplugStatus {
     /// Total size of the hotpluggable memory in MiB
-    total_size_mib: Option<isize>,
+    pub total_size_mib: Option<isize>,
     /// Slot size for the hotpluggable memory in MiB
-    slot_size_mib: Option<isize>,
+    pub slot_size_mib: Option<isize>,
     /// (Logical) Block size for the hotpluggable memory in MiB
-    block_size_mib: Option<isize>,
+    pub block_size_mib: Option<isize>,
     /// Plugged size for the hotpluggable memory in MiB
-    plugged_size_mib: Option<isize>,
+    pub plugged_size_mib: Option<isize>,
     /// Requested size for the hotpluggable memory in MiB
-    requested_size_mib: Option<isize>,
+    pub requested_size_mib: Option<isize>,
 }
 
 /// Describes the Firecracker version
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FirecrackerVersion {
     /// Firecracker build version
-    firecracker_version: String,
+    pub firecracker_version: String,
 }
 
 /// An update to the size of the hotpluggable memory region
@@ -417,7 +417,7 @@ pub struct FirecrackerVersion {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MemoryHotplugSizeUpdate {
     /// New target region size
-    requested_size_mib: Option<isize>,
+    pub requested_size_mib: Option<isize>,
 }
 
 /// The configuration of the serial device
@@ -425,7 +425,7 @@ pub struct MemoryHotplugSizeUpdate {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SerialDevice {
     /// Path to a file or named pipe on the host to which serial output should be written
-    serial_out_path: Option<String>,
+    pub serial_out_path: Option<String>,
 }
 
 /// The configuration of the hotpluggable memory device (virtio-mem)
@@ -433,32 +433,32 @@ pub struct SerialDevice {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MemoryHotplugConfig {
     /// Total size of the hotpluggable memory in MiB
-    total_size_mib: Option<isize>,
+    pub total_size_mib: Option<isize>,
     /// Slot size for the hotpluggable memory in MiB. This will determine the granularity of
     /// hot-plug memory from the host. Refer to the device documentation on how to tune this value
-    slot_size_mib: Option<isize>,
+    pub slot_size_mib: Option<isize>,
     /// (Logical) Block size for the hotpluggable memory in MiB. This will determine the logical
     /// granularity of hot-plug memory for the guest. Refer to the device documentation on how to tune this value
-    block_size_mib: Option<isize>,
+    pub block_size_mib: Option<isize>,
 }
 
 /// Defines an entropy device
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EntropyDevice {
-    rate_limiter: Option<RateLimiter>,
+    pub rate_limiter: Option<RateLimiter>,
 }
 
 /// Defines a network interface
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkInterface {
-    guest_mac: Option<String>,
+    pub guest_mac: Option<String>,
     /// Host level path for the guest network interface
-    host_dev_name: String,
-    iface_id: String,
-    rx_rate_limiter: Option<RateLimiter>,
-    tx_rate_limiter: Option<RateLimiter>,
+    pub host_dev_name: String,
+    pub iface_id: String,
+    pub rx_rate_limiter: Option<RateLimiter>,
+    pub tx_rate_limiter: Option<RateLimiter>,
 }
 
 /// Describes the contents of MMDS in JSON format
@@ -466,7 +466,7 @@ pub struct NetworkInterface {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MmdsContentsObject {
     #[serde(flatten)]
-    contents: Value,
+    pub contents: Value,
 }
 
 /// Describes the configuration option for the metrics capability.
@@ -474,27 +474,27 @@ pub struct MmdsContentsObject {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Metrics {
     /// Path to the named pipe or file where the JSON-formatted metrics are flushed
-    metrics_path: String,
+    pub metrics_path: String,
 }
 
 /// Describes the number of vCPUs, memory size, SMT capabilities, huge page configuration and the CPU template
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MachineConfiguration {
-    cpu_template: Option<CpuTemplate>,
+    pub cpu_template: Option<CpuTemplate>,
     /// Flag for enabling/disabling simultaneous multithreading. Can be enabled only on x86.
-    smt: Option<bool>,
+    pub smt: Option<bool>,
     /// Memory size of VM
-    mem_size_mib: isize,
+    pub mem_size_mib: isize,
     /// Enable dirty page tracking. If this is enabled, then incremental guest memory
     /// snapshots can be created. These belong to diff snapshots, which contain, besides
     /// the microVM state, only the memory dirtied since a previous snapshot. Full snapshots
     /// each contain a full copy of the guest memory.
-    track_dirty_pages: Option<bool>,
+    pub track_dirty_pages: Option<bool>,
     /// Number of vCPUs (either 1 or an even number) (1 <= n <= 32)
-    vcpu_count: isize,
+    pub vcpu_count: isize,
     /// Which huge pages configuration (if any) should be used to back guest memory
-    huge_pages: Option<HugePages>,
+    pub huge_pages: Option<HugePages>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -515,13 +515,13 @@ pub enum MemoryBackendType {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MemoryBackend {
-    backend_type: MemoryBackendType,
+    pub backend_type: MemoryBackendType,
     /// Based on 'backend_type' it is either
     /// 1) Path to the file that contains the guest memory to be loaded
     /// 2) Path to the UDS where a process is listening for a UFFD initialization
     /// control payload and open file descriptor that it can use to serve this
     /// process's guest memory page faults
-    backend_path: String,
+    pub backend_path: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -538,7 +538,7 @@ pub enum MmdsConfigVersion {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MmdsConfig {
     /// Enumeration indicating the MMDS version to be configured
-    version: Option<MmdsConfigVersion>,
+    pub version: Option<MmdsConfigVersion>,
     /// List of the network interface IDs capable of forwarding packets to
     /// the MMDS. Network interface IDs mentioned must be valid at the time
     /// of this request. The net device model will reply to HTTP GET requests
@@ -546,12 +546,12 @@ pub struct MmdsConfig {
     /// case, both ARP requests and TCP segments heading to `ipv4_address`
     /// are intercepted by the device model, and do not reach the associated
     /// TAP device.
-    network_interfaces: Vec<String>,
+    pub network_interfaces: Vec<String>,
     /// A valid IPv4 link-local address
-    ipv4_address: Option<String>,
+    pub ipv4_address: Option<String>,
     /// MMDS operates compatibly with EC2 IMDS (i.e. responds "text/plain"
     /// content regardless of Accept header in requests)
-    imds_compat: Option<bool>,
+    pub imds_compat: Option<bool>,
 }
 
 /// Defines an IO rate limiter with independent bytes/s and ops/s limits
@@ -561,20 +561,20 @@ pub struct MmdsConfig {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RateLimiter {
     /// Token bucket with bytes as tokens
-    bandwidth: Option<TokenBucket>,
+    pub bandwidth: Option<TokenBucket>,
     /// Token bucket with operations as tokens
-    ops: Option<TokenBucket>,
+    pub ops: Option<TokenBucket>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SnapshotCreateParams {
     /// Type of snapshot to create. It is optional and by default, a full snapshot is created
-    snapshot_type: Option<SnapshotType>,
+    pub snapshot_type: Option<SnapshotType>,
     /// Path to the file that will contain the guest memory
-    mem_file_path: String,
+    pub mem_file_path: String,
     /// Path to the file that will contain the microVM state
-    snapshot_path: String,
+    pub snapshot_path: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -588,21 +588,21 @@ pub enum SnapshotType {
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PartialDrive {
-    drive_id: String,
+    pub drive_id: String,
     /// Host level path for the guest drive
     ///
     /// This field is optional for virtio-block config and should be omitted for vhost-user-block configuration
-    path_on_host: Option<String>,
-    rate_limiter: Option<RateLimiter>,
+    pub path_on_host: Option<String>,
+    pub rate_limiter: Option<RateLimiter>,
 }
 
 /// Defines a partial network interface structure, used to update the rate limiters for that interface, after microvm start
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PartialNetworkInterface {
-    iface_id: String,
-    rx_rate_limiter: Option<RateLimiter>,
-    tx_rate_limiter: Option<RateLimiter>,
+    pub iface_id: String,
+    pub rx_rate_limiter: Option<RateLimiter>,
+    pub tx_rate_limiter: Option<RateLimiter>,
 }
 
 /// Defines a token bucket with a maximum capacity (size), an initial burst size
@@ -617,20 +617,20 @@ pub struct PartialNetworkInterface {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TokenBucket {
     /// The initial size of a token bucket
-    one_time_burst: Option<i64>,
+    pub one_time_burst: Option<i64>,
     /// The amount of milliseconds it takes for the bucket to refill
-    refill_time: i64,
+    pub refill_time: i64,
     /// The total number of tokens this bucket can hold
-    size: i64,
+    pub size: i64,
 }
 
 /// Allows for changing the backing TAP device of a network interface during snapshot restore
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkOverride {
     /// The name of the interface to modify
-    iface_id: String,
+    pub iface_id: String,
     /// The new host device of the interface
-    host_dev_name: String,
+    pub host_dev_name: String,
 }
 
 /// Defines the configuration used for handling snapshot resume. Exactly one of
@@ -639,23 +639,23 @@ pub struct NetworkOverride {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SnapshotLoadParams {
     /// (Deprecated) Enable dirty page tracking to improve space efficiency of diff snapshots
-    enable_diff_snapshots: Option<bool>,
+    pub enable_diff_snapshots: Option<bool>,
     /// Enable dirty page tracking to improve space efficiency of diff snapshots
-    track_dirty_pages: Option<bool>,
+    pub track_dirty_pages: Option<bool>,
     /// Path to the file that contains the guest memory to be loaded.
     /// It is only allowed if `mem_backend` is not present. This parameter has
     /// been deprecated and it will be removed in future Firecracker release.
-    mem_file_path: Option<String>,
+    pub mem_file_path: Option<String>,
     /// Configuration for the backend that handles memory load. If this field
     /// is specified, `mem_file_path` is forbidden. Either `mem_backend` or
     /// `mem_file_path` must be present at a time.
-    mem_backend: Option<MemoryBackend>,
+    pub mem_backend: Option<MemoryBackend>,
     /// Path to the file that contains the microVM state to be loaded
-    snapshot_path: String,
+    pub snapshot_path: String,
     /// When set to true, the vm is also resumed if the snapshot load is successful
-    resume_vm: Option<bool>,
+    pub resume_vm: Option<bool>,
     /// Network host device names to override
-    network_overrides: Option<Vec<NetworkOverride>>,
+    pub network_overrides: Option<Vec<NetworkOverride>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
