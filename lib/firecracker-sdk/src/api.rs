@@ -114,7 +114,7 @@ impl FirecrackerApiClient {
     where
         T: for<'de> serde::Deserialize<'de>,
     {
-        let result = self.request(Method::GET, path, req.into()).await?;
+        let result = self.request(Method::PUT, path, req.into()).await?;
         self.parse_response(result, expected_status).await
     }
 
@@ -188,7 +188,7 @@ api_methods!(
     PATCH "/balloon" as patch_balloon (balloon_patch: BalloonUpdate) with NO_CONTENT;
     GET "/balloon/statistics" as get_balloon_statistics -> BalloonStats with OK;
     PATCH "/balloon/statistics" as patch_balloon_statistics (balloon_stats_update: BalloonStatsUpdate) with NO_CONTENT;
-    PATCH "/balloon/hinting/start" as patch_balloon_hinting_start (balloon_start_cmd: BalloonStatsUpdate) with OK;
+    PATCH "/balloon/hinting/start" as patch_balloon_hinting_start (balloon_start_cmd: BalloonStartCmd) with OK;
     GET "/balloon/hinting/status" as get_balloon_hinting_status -> BalloonHintingStatus with OK;
     PUT "/boot-source" as put_boot_source (boot_source: BootSource) with NO_CONTENT;
     PUT "/cpu-config" as put_cpu_config (cpu_config: CpuConfig) with NO_CONTENT;
@@ -242,7 +242,7 @@ impl FirecrackerApiClient {
     }
 
     pub async fn patch_drives(&self, partial_drive: &dto::PartialDrive) -> Result<(), ApiError> {
-        self.put(
+        self.patch(
             format!("/drives/{}", partial_drive.drive_id).as_str(),
             serde_json::to_vec(partial_drive)?,
             StatusCode::NO_CONTENT,
