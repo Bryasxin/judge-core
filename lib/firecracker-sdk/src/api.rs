@@ -36,6 +36,9 @@ pub enum ApiError {
 
     #[error("Firecracker API error: {0}")]
     Firecracker(String),
+
+    #[error("Invalid state: {0}")]
+    InvalidState(String),
 }
 
 impl FirecrackerApiClient {

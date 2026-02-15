@@ -327,7 +327,7 @@ pub struct InstanceInfo {
     pub vmm_version: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum InstanceState {
     #[serde(rename = "Not Started")]
     NotStarted,
@@ -367,6 +367,21 @@ pub enum LoggerLevel {
     Trace,
     #[serde(rename = "Off")]
     Off,
+}
+
+// We only need to transform it into string
+#[allow(clippy::from_over_into)]
+impl Into<String> for LoggerLevel {
+    fn into(self) -> String {
+        match self {
+            LoggerLevel::Error => "Error".to_string(),
+            LoggerLevel::Warning => "Warning".to_string(),
+            LoggerLevel::Info => "Info".to_string(),
+            LoggerLevel::Debug => "Debug".to_string(),
+            LoggerLevel::Trace => "Trace".to_string(),
+            LoggerLevel::Off => "Off".to_string(),
+        }
+    }
 }
 
 /// Defines a vsock device, backed by a set of Unix Domain Sockets, on the host side.
