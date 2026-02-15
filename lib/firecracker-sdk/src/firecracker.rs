@@ -244,6 +244,9 @@ impl Firecracker {
 
     /// Pause firecracker instance
     pub async fn pause(&mut self) -> Result<(), Error> {
+        if self.state == InstanceState::Stopped {
+            return Err(Error::InvalidState("Cannot pause: vm is stopped"));
+        }
         if self.state != InstanceState::Running {
             return Err(Error::InvalidState("Cannot pause: vm is not running"));
         }
@@ -262,6 +265,9 @@ impl Firecracker {
 
     /// Resume firecracker instance
     pub async fn resume(&mut self) -> Result<(), Error> {
+        if self.state == InstanceState::Stopped {
+            return Err(Error::InvalidState("Cannot resume: vm is stopped"));
+        }
         if self.state != InstanceState::Paused {
             return Err(Error::InvalidState("Cannot resume: vm is not paused"));
         }
