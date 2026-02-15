@@ -8,6 +8,7 @@ use hyper::{
 use hyper_util::client::legacy::Client;
 use hyperlocal::{UnixClientExt, UnixConnector, Uri as UnixUri};
 use paste::paste;
+use percent_encoding::{NON_ALPHANUMERIC, utf8_percent_encode};
 use serde::Deserialize;
 use std::path::PathBuf;
 
@@ -135,7 +136,7 @@ impl FirecrackerApiClient {
     }
 }
 
-// HACK: Improve this shit
+// TODO: Refactor this macro for better readability
 macro_rules! api_methods {
     (
         $(
@@ -236,8 +237,9 @@ impl FirecrackerApiClient {
     }
 
     pub async fn put_drives(&self, drive: &dto::Drive) -> Result<(), ApiError> {
+        let encoded_id = utf8_percent_encode(&drive.drive_id, NON_ALPHANUMERIC);
         self.put(
-            format!("/drives/{}", drive.drive_id).as_str(),
+            format!("/drives/{}", encoded_id).as_str(),
             serde_json::to_vec(drive)?,
             StatusCode::NO_CONTENT,
         )
@@ -245,8 +247,9 @@ impl FirecrackerApiClient {
     }
 
     pub async fn patch_drives(&self, partial_drive: &dto::PartialDrive) -> Result<(), ApiError> {
+        let encoded_id = utf8_percent_encode(&partial_drive.drive_id, NON_ALPHANUMERIC);
         self.patch(
-            format!("/drives/{}", partial_drive.drive_id).as_str(),
+            format!("/drives/{}", encoded_id).as_str(),
             serde_json::to_vec(partial_drive)?,
             StatusCode::NO_CONTENT,
         )
@@ -254,8 +257,9 @@ impl FirecrackerApiClient {
     }
 
     pub async fn put_pmem(&self, pmem: &dto::Pmem) -> Result<(), ApiError> {
+        let encoded_id = utf8_percent_encode(&pmem.id, NON_ALPHANUMERIC);
         self.put(
-            format!("/pmem/{}", pmem.id).as_str(),
+            format!("/pmem/{}", encoded_id).as_str(),
             serde_json::to_vec(pmem)?,
             StatusCode::NO_CONTENT,
         )
@@ -266,8 +270,9 @@ impl FirecrackerApiClient {
         &self,
         interface: &dto::NetworkInterface,
     ) -> Result<(), ApiError> {
+        let encoded_id = utf8_percent_encode(&interface.iface_id, NON_ALPHANUMERIC);
         self.put(
-            format!("/network-interfaces/{}", interface.iface_id).as_str(),
+            format!("/network-interfaces/{}", encoded_id).as_str(),
             serde_json::to_vec(interface)?,
             StatusCode::NO_CONTENT,
         )
@@ -278,8 +283,9 @@ impl FirecrackerApiClient {
         &self,
         interface: &dto::PartialNetworkInterface,
     ) -> Result<(), ApiError> {
+        let encoded_id = utf8_percent_encode(&interface.iface_id, NON_ALPHANUMERIC);
         self.patch(
-            format!("/network-interfaces/{}", interface.iface_id).as_str(),
+            format!("/network-interfaces/{}", encoded_id).as_str(),
             serde_json::to_vec(interface)?,
             StatusCode::NO_CONTENT,
         )

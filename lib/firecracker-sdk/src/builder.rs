@@ -4,7 +4,6 @@ use crate::firecracker::Firecracker;
 use std::path::PathBuf;
 
 /// Used for quickly generating builder pattern setter methods
-/// HACK: This is a temporary method and will be modified later.
 macro_rules! with {
     // Match [`Option<T>`]
     ($field_name:expr, Option<$inner_type:ty>) => {
@@ -122,13 +121,13 @@ impl FirecrackerBuilder {
             ));
         }
 
-        if let Some(ref path) = self.config_file {
-            if !path.exists() {
-                return Err(crate::Error::InvalidConfiguration(format!(
-                    "Configuration file not found: {}",
-                    path.display()
-                )));
-            }
+        if let Some(ref path) = self.config_file
+            && !path.exists()
+        {
+            return Err(crate::Error::InvalidConfiguration(format!(
+                "Configuration file not found: {}",
+                path.display()
+            )));
         }
 
         if let Some(ref path) = self.seccomp_filter {

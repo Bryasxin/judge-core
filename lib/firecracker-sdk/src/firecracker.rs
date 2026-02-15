@@ -10,9 +10,6 @@ use tokio::time::{Duration, timeout};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("Invalid configuration: {0}")]
-    InvaildConfiguration(String),
-
     #[error("Failed to spawn Firecracker process: {0}")]
     Process(#[from] std::io::Error),
 
@@ -201,8 +198,8 @@ impl Firecracker {
 
         let child = Command::new(&self.firecracker_binary)
             .args(&self.args)
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
             .spawn()?;
 
         // Check api client is available
@@ -231,9 +228,10 @@ impl Firecracker {
         // Apply user configuration
         self.apply_config().await?;
 
+        // Put `InstanceStart` action
         self.client
             .as_ref()
-            .unwrap()
+            .ok_or_else(|| Error::InvalidState("Api client not available"))?
             .put_actions(&InstanceActionInfo {
                 action_type: ActionType::InstanceStart,
             })
@@ -247,7 +245,7 @@ impl Firecracker {
     /// Pause firecracker instance
     pub async fn pause(&mut self) -> Result<(), Error> {
         if self.state != InstanceState::Running {
-            return Err(Error::InvalidState("Cannot pause: VM is not running"));
+            return Err(Error::InvalidState("Cannot pause: vm is not running"));
         }
 
         let client = self
@@ -265,7 +263,7 @@ impl Firecracker {
     /// Resume firecracker instance
     pub async fn resume(&mut self) -> Result<(), Error> {
         if self.state != InstanceState::Paused {
-            return Err(Error::InvalidState("Cannot resume: VM is not paused"));
+            return Err(Error::InvalidState("Cannot resume: vm is not paused"));
         }
 
         let client = self
@@ -290,13 +288,15 @@ impl Firecracker {
                 .await;
         }
 
+        // Wait for process to exit to avoid zombie processes
         if let Some(mut process) = self.process.take() {
             let _ = process.kill().await;
+            let _ = timeout(Duration::from_secs(5), process.wait()).await;
         }
 
         self.client = None;
         self.process = None;
-        self.state = InstanceState::NotStarted;
+        self.state = InstanceState::Stopped;
         self.instance_info = None;
 
         Ok(())
@@ -305,11 +305,8 @@ impl Firecracker {
 
 impl Drop for Firecracker {
     fn drop(&mut self) {
-        match self.process {
-            Some(_) => {
-                let _ = tokio::runtime::Handle::current().block_on(self.shutdown());
-            }
-            None => (),
+        if let Some(mut process) = self.process.take() {
+            let _ = process.start_kill();
         }
     }
 }

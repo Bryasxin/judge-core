@@ -216,12 +216,12 @@ pub struct Drive {
     /// field is true.
     pub partuuid: Option<String>,
     /// Is root device
-    pub is_root_device: Option<bool>,
+    pub is_root_device: bool,
     /// Represents the caching strategy for the block device
     pub cache_type: Option<CacheType>,
     /// Is block read only.
     /// This field is required for virtio-block config and should be omitted for vhost-user-block configuration
-    pub is_read_only: bool,
+    pub is_read_only: Option<bool>,
     /// Host level path for the guest drive
     /// This field is required for virtio-block config and should be omitted for vhost-user-block configuration
     pub path_on_host: Option<String>,
@@ -333,6 +333,7 @@ pub enum InstanceState {
     NotStarted,
     Running,
     Paused,
+    Stopped,
 }
 
 /// Describes the configuration option for the logging capability
